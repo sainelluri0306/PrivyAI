@@ -27,7 +27,7 @@ export function HeroVisual() {
         <motion.div
           key={i}
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0, x: card.x, y: card.y }}
+          animate={{ opacity: 1, scale: 1, x: card.x, y: card.y }}
           transition={{ duration: 0.6, delay: 0.6 + card.delay, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="absolute rounded-xl border border-white/15 bg-white/[0.06] backdrop-blur-sm shadow-xl flex flex-col items-center justify-center gap-1"
           style={{ width: card.w, height: card.h }}

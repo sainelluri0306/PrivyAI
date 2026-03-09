@@ -9,6 +9,7 @@ type Props = {
   className?: string;
   onClick?: () => void;
   type?: "button" | "submit";
+  disabled?: boolean;
 };
 
 export function CTAButton({
@@ -18,6 +19,7 @@ export function CTAButton({
   className = "",
   onClick,
   type = "button",
+  disabled = false,
 }: Props) {
   const wrapperClass =
     "relative inline-flex rounded-xl p-[2px] " +
@@ -53,6 +55,7 @@ export function CTAButton({
       type={type}
       onClick={onClick}
       className={wrapperClass}
+      disabled={disabled}
       whileTap={{ scale: 0.99 }}
     >
       <motion.span

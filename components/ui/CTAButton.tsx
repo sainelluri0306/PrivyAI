@@ -19,6 +19,7 @@ export function CTAButton({
   className = "",
   onClick,
   type = "button",
+  disabled = false,
 }: Props) {
   const wrapperClass =
     "relative inline-flex rounded-xl p-[2px] " +

@@ -39,17 +39,21 @@ export function FinalCTA() {
       if (error) {
         console.error("Error inserting into waitlist:", error);
         setStatus("error");
-        setErrorMessage("Something went wrong. Please try again.");
+        setErrorMessage(error.message || "Something went wrong. Please try again.");
         return;
       }
 
       setStatus("success");
       setEmail("");
       setName("");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Unexpected error inserting into waitlist:", err);
       setStatus("error");
-      setErrorMessage("Something went wrong. Please try again.");
+      const message =
+        typeof err === "object" && err !== null && "message" in err
+          ? String((err as { message?: unknown }).message)
+          : "Something went wrong. Please try again.";
+      setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
     }

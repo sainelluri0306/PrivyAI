@@ -4,38 +4,54 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { SectionReveal, SectionRevealItem } from "@/components/ui/SectionReveal";
 import { CTAButton } from "@/components/ui/CTAButton";
+import { supabase } from "@/lib/supabaseClient";
 
 const ease = [0.25, 0.46, 0.45, 0.94];
 
 export function FinalCTA() {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!email.trim()) {
+      setStatus("error");
+      setErrorMessage("Please enter an email address.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setStatus("idle");
+    setErrorMessage(null);
+
     try {
-      const res = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error || "Something went wrong. Please try again.");
+      const { error } = await supabase.from("waitlist").insert([
+        {
+          email: email.trim(),
+          name: name.trim() || null,
+        },
+      ]);
+
+      if (error) {
+        console.error("Error inserting into waitlist:", error);
+        setStatus("error");
+        setErrorMessage("Something went wrong. Please try again.");
         return;
       }
-      setSuccess(true);
+
+      setStatus("success");
       setEmail("");
       setName("");
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      console.error("Unexpected error inserting into waitlist:", err);
+      setStatus("error");
+      setErrorMessage("Something went wrong. Please try again.");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   }
 
@@ -83,47 +99,36 @@ export function FinalCTA() {
         >
           <div className="relative rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-sm p-6 md:p-8 shadow-xl shadow-violet-500/5">
             <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-violet-500/5 to-transparent pointer-events-none" aria-hidden />
-            {success ? (
-              <p className="relative text-emerald-400 text-sm font-medium">
-                You’re on the list. We’ll be in touch soon.
-              </p>
-            ) : (
-              <form className="relative space-y-3 text-left" onSubmit={handleSubmit}>
-                <input
-                  type="email"
-                  placeholder="Email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
-                  className="w-full px-4 py-3.5 rounded-xl glass border border-white/10 bg-white/5 placeholder:text-zinc-500 text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm disabled:opacity-60"
-                />
-                <input
-                  type="text"
-                  placeholder="Name (optional)"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={loading}
-                  className="w-full px-4 py-3.5 rounded-xl glass border border-white/10 bg-white/5 placeholder:text-zinc-500 text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm disabled:opacity-60"
-                />
-                {error && (
-                  <p className="text-red-400 text-xs">{error}</p>
-                )}
-                <div className="pt-1">
-                  <CTAButton
-                    type="submit"
-                    primary
-                    disabled={loading}
-                    className="w-full !py-3.5 text-sm font-medium disabled:opacity-70"
-                  >
-                    {loading ? "Joining…" : "Join waitlist"}
-                  </CTAButton>
-                </div>
-              </form>
-            )}
-            <p className="relative text-zinc-500 text-xs mt-5">
-              Waitlist for early access. Free pilot spots limited.
-            </p>
+            <form onSubmit={handleSubmit} className="relative space-y-3 text-left">
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-3.5 rounded-xl glass border border-white/10 bg-white/5 placeholder:text-zinc-500 text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
+              />
+              <input
+                type="text"
+                placeholder="Name (optional)"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-3.5 rounded-xl glass border border-white/10 bg-white/5 placeholder:text-zinc-500 text-white focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-white/20 transition-all text-sm"
+              />
+              <div className="pt-1">
+                <CTAButton type="submit" primary className="w-full !py-3.5 text-sm font-medium">
+                  {isSubmitting ? "Joining..." : "Join waitlist"}
+                </CTAButton>
+              </div>
+            </form>
+            <div className="relative text-xs mt-5 space-y-1">
+              <p className="text-zinc-500">Waitlist for early access. Free pilot spots limited.</p>
+              {status === "success" && (
+                <p className="text-emerald-400">
+                  You&apos;re on the list. We&apos;ll be in touch soon.
+                </p>
+              )}
+              {status === "error" && errorMessage && <p className="text-rose-400">{errorMessage}</p>}
+            </div>
           </div>
         </motion.div>
       </div>

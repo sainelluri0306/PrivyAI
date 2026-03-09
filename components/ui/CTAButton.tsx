@@ -19,7 +19,6 @@ export function CTAButton({
   className = "",
   onClick,
   type = "button",
-  disabled = false,
 }: Props) {
   const wrapperClass =
     "relative inline-flex rounded-xl p-[2px] " +
@@ -54,8 +53,8 @@ export function CTAButton({
     <motion.button
       type={type}
       onClick={onClick}
-      className={wrapperClass}
       disabled={disabled}
+      className={wrapperClass}
       whileTap={{ scale: 0.99 }}
     >
       <motion.span
